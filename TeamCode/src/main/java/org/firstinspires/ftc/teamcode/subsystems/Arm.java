@@ -20,7 +20,7 @@ public class Arm {
     public static void initArm(HardwareMap hwm){
         //Declare Motors on hardware map
         //arm = hwm.get(DcMotor.class, "arm");
-        //claw = hwm.get(Servo.class, "claw");
+        claw = hwm.get(Servo.class, "claw");
 
         //arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         //arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -32,10 +32,10 @@ public class Arm {
     }
 
     public static void openClaw(){
-        claw.setPosition(.7);
+        claw.setPosition(.4);
     }
 
     public static void closeClaw(){
-        claw.setPosition(.4);
+        claw.setPosition(.08);
     }
 }

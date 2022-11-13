@@ -167,15 +167,15 @@ public class OdometryTest extends LinearOpMode {
             telemetry.update();
         }
 
-        goToPosition(0,52 * COUNTS_PER_INCH, 0.3, 0, 1 * COUNTS_PER_INCH);//0.6
+        goToPosition(0,52 * COUNTS_PER_INCH, 0.3, 0, 0 * COUNTS_PER_INCH);//0.6
 
         sleep(100);
 
-        globalPositionUpdate.resetEncoders();
+        /*globalPositionUpdate.resetEncoders();
         DriveTrain.setRunMode("RUN_WITHOUT_ENCODER");
         DriveTrain.leftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         DriveTrain.rightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        DriveTrain.middleWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        DriveTrain.middleWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);*/
 
         turn(90);
 
@@ -240,7 +240,7 @@ public class OdometryTest extends LinearOpMode {
 
         boolean turnFlag = false;
 
-        while(distance > allowedError || pivot > (Math.PI)/90){
+        while(distanceToYTarget > allowedError || pivot > (Math.PI)/90){
             distanceToXTarget = targetXPos - globalPositionUpdate.returnXCoordinate();
             distanceToYTarget = targetYPos - globalPositionUpdate.returnYCoordinate();
             distance = Math.hypot(distanceToXTarget, distanceToYTarget);
@@ -315,7 +315,9 @@ public class OdometryTest extends LinearOpMode {
         previousTargetX = targetXPos;
         getPreviousTargetY= targetYPos;
 
-        DriveTrain.stop();
+
+        //DriveTrain.stop();
+        DriveTrain.autoBrake(500);
         sleep(250);
     }
 

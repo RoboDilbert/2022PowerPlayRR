@@ -197,6 +197,23 @@ public class DriveTrain {
 
     }
 
+    public static void autoBrake(int timer){
+        double currentPower = leftFront.getPower();
+        double power = -1;
+
+        while(timer > 0) {
+            leftFront.setPower(power);
+            leftBack.setPower(power);
+            rightFront.setPower(power);
+            rightBack.setPower(power);
+            timer--;
+        }
+        leftFront.setPower(0);
+        leftBack.setPower(0);
+        rightFront.setPower(0);
+        rightBack.setPower(0);
+    }
+
     public static void composeTelemetry (Telemetry telemetry) {
 
         telemetry.addAction(new Runnable() {

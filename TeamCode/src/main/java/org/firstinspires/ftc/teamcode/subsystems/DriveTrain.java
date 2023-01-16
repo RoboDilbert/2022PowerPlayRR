@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -33,6 +34,7 @@ public class DriveTrain {
     public static BNO055IMU imu;
     public static Orientation angles;
     public static Acceleration gravity;
+
 
     //Constructor
     public DriveTrain(){}
@@ -90,6 +92,7 @@ public class DriveTrain {
         imu.initialize(parameters1);
 
         angles = DriveTrain.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
+
     }
 
 
@@ -199,6 +202,22 @@ public class DriveTrain {
         leftBack.setPower(0);
         rightFront.setPower(0);
         rightBack.setPower(0);
+    }
+
+    public static void cartesianDrive(double x, double y, double z, double adjust){
+        double speed = Math.sqrt(2) * Math.hypot(x, y);
+        double command = Math.atan2(y, -x) + Math.PI/2;
+        double rotation = z;
+
+        angles = DriveTrain.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
+        double adjustedXHeading = Math.cos(command + (angles.firstAngle + adjust) + Math.PI/4);
+        double adjustedYHeading = Math.sin(command + (angles.firstAngle + adjust) + Math.PI/4);
+
+        leftFront.setPower((speed * adjustedYHeading + rotation));
+        rightFront.setPower((speed * adjustedXHeading - rotation));
+        leftBack.setPower((speed * adjustedXHeading + rotation));
+        rightBack.setPower((speed * adjustedYHeading - rotation));
+
     }
 
     public static void composeTelemetry (Telemetry telemetry) {

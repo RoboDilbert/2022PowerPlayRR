@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Arm2;
 import org.firstinspires.ftc.teamcode.subsystems.DriveTrain;
 
 @Disabled
-@TeleOp(name="TeleOop", group="Linear Opmode")
+@TeleOp(name="TeleOop2", group="Linear Opmode")
 
 public class yourmom extends LinearOpMode {
     private boolean autoDrop = false;
@@ -33,7 +33,7 @@ public class yourmom extends LinearOpMode {
         Arm1.claw.setPosition(.38);
 
         while(opModeIsActive()){
-            if(gamepad1.left_bumper)
+            /*if(gamepad1.left_bumper)
                 DriveTrain.mecanumDrive(-gamepad1.left_stick_y * 0.35, gamepad1.left_stick_x * 0.45, gamepad1.right_stick_x * 0.35);
             else
                 DriveTrain.mecanumDrive(-gamepad1.left_stick_y * 0.55, gamepad1.left_stick_x * 0.55, gamepad1.right_stick_x * 0.35);
@@ -108,7 +108,6 @@ public class yourmom extends LinearOpMode {
             telemetry.addData("Arm1 Height Right: ", Arm1.arm1Right.getCurrentPosition());
             telemetry.addData("Arm2 Height Left: ", Arm2.arm2Left.getCurrentPosition());
             telemetry.addData("Arm2 Height Right: ", Arm2.arm2Right.getCurrentPosition());*/
-            telemetry.update();
 
         }
     }

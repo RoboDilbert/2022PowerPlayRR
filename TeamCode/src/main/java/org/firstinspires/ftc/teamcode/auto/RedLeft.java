@@ -1,29 +1,35 @@
 package org.firstinspires.ftc.teamcode.auto;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Arm1;
+import org.firstinspires.ftc.teamcode.subsystems.Arm2;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.vision.AprilTagDetectionPipeline;
+import org.firstinspires.ftc.teamcode.vision.NormalizationDemoPipelineCone;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.util.ArrayList;
-@Disabled
 
 @Autonomous(name= "RedLeft", group= "Autonomous")
 public class RedLeft extends LinearOpMode {
 
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
+
+    NormalizationDemoPipelineCone pipeline;
+
+    ElapsedTime timeyBoi = new ElapsedTime();
 
     // Lens intrinsics
     // UNITS ARE PIXELS
@@ -49,6 +55,11 @@ public class RedLeft extends LinearOpMode {
 
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
         Arm1.initArm1(hardwareMap);
+        Arm2.initArm2(hardwareMap);
+
+        Arm1.blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
+
+        pipeline = new NormalizationDemoPipelineCone(telemetry);
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "camera"), cameraMonitorViewId);
@@ -77,115 +88,37 @@ public class RedLeft extends LinearOpMode {
         drive.setPoseEstimate(startPose);
 
         TrajectorySequence trajSeq = drive.trajectorySequenceBuilder(startPose)
-
-                /*
-                .waitSeconds(1)
-                .addTemporalMarker(() -> {
-                    Arm.armSpecDown(90);
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -60.75, startPose.getY() + 2.5, Math.toRadians(-73.5)))
+                .addDisplacementMarker(55, () -> {
+                    Arm1.forearmDown();
                 })
-                .lineTo(new Vector2d(startPose.getX() + 50, startPose.getY() - 28.5))
-                .waitSeconds(1)
-                .addTemporalMarker(() -> {
-                    Arm.closeClaw();
-                })
-                .waitSeconds(.5)
-                .addTemporalMarker(() -> {
-                    Arm.armTop();
-                })
-                .UNSTABLE_addDisplacementMarkerOffset(10, () -> {
-                    Arm.swinger.setPosition(.23);
-                })
-                .lineTo(new Vector2d(startPose.getX() + 50, startPose.getY() + 9))
-                .waitSeconds(1)
-                .addTemporalMarker(() -> {
-                    Arm.armTopKinda();
-                })
-                .waitSeconds(.5)
-                .addTemporalMarker(() -> {
-                    Arm.openClaw();
-                })
-                .waitSeconds(.5)
-                .addTemporalMarker(() -> {
-                    Arm.swinger.setPosition(.5);
-                })
-
-
-
-                .waitSeconds(1)
-                .addTemporalMarker(() -> {
-                    Arm.armSpecDown(60);
-                })
-                .lineTo(new Vector2d(startPose.getX() + 50, startPose.getY() - 28.5))
-                .addTemporalMarker(() -> {
-                    Arm.closeClaw();
-                })
-                .waitSeconds(.5)
-                .addTemporalMarker(() -> {
-                    Arm.armTop();
-                })
-                .UNSTABLE_addDisplacementMarkerOffset(10, () -> {
-                    Arm.swinger.setPosition(.23);
-                })
-                .lineTo(new Vector2d(startPose.getX() + 50, startPose.getY() + 9))
-                .waitSeconds(1)
-                .addTemporalMarker(() -> {
-                    Arm.armTopKinda();
-                })
-                .waitSeconds(.5)
-                .addTemporalMarker(() -> {
-                    Arm.openClaw();
-                })
-                .waitSeconds(.5)
-                .addTemporalMarker(() -> {
-                    Arm.swinger.setPosition(.5);
-                })
-
-
-
-                .waitSeconds(.5)
-                .addTemporalMarker(() -> {
-                    Arm.armSpecDown(0);
-                })
-                .lineTo(new Vector2d(startPose.getX() + 50, startPose.getY() - 28.5))
-                .waitSeconds(1)
-                .addTemporalMarker(() -> {
-                    Arm.closeClaw();
-                })
-                .waitSeconds(.5)
-                .addTemporalMarker(() -> {
-                    Arm.armTop();
-                })
-                .UNSTABLE_addDisplacementMarkerOffset(10, () -> {
-                    Arm.swinger.setPosition(.23);
-                })
-                .lineTo(new Vector2d(startPose.getX() + 50, startPose.getY() + 9))
-                .waitSeconds(1)
-                .addTemporalMarker(() -> {
-                    Arm.armTopKinda();
-                })
-                .waitSeconds(.5)
-                .addTemporalMarker(() -> {
-                    Arm.openClaw();
-                })
-                .waitSeconds(.5)
-                .addDisplacementMarker(() -> {
-                    Arm.swinger.setPosition(.5);
-                })
-                */
                 .build();
 
-
-        TrajectorySequence left = drive.trajectorySequenceBuilder(trajSeq.end())
-                .forward(32)
+        TrajectorySequence sumo = drive.trajectorySequenceBuilder(trajSeq.end())
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -60.76, startPose.getY() + 2.5, Math.toRadians(-73.5)))
                 .build();
 
-        TrajectorySequence middle = drive.trajectorySequenceBuilder(trajSeq.end())
-                .forward(8)
+        TrajectorySequence left = drive.trajectorySequenceBuilder(sumo.end())
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2.5, Math.toRadians(-90)))
+                .addTemporalMarker(() -> {
+                    Arm1.forearmUp();
+                })
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() - 22, Math.toRadians(-90)))
                 .build();
 
-        TrajectorySequence right = drive.trajectorySequenceBuilder(trajSeq.end())
-                .back(17)
+        TrajectorySequence middle = drive.trajectorySequenceBuilder(sumo.end())
+                .addTemporalMarker(() -> {
+                    Arm1.forearmUp();
+                })
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2.5, Math.toRadians(-90)))
                 .build();
+
+        TrajectorySequence right = drive.trajectorySequenceBuilder(sumo.end())
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2.5, Math.toRadians(-90)))
+                .addTemporalMarker(() -> {
+                    Arm1.forearmUp();
+                })
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 26, Math.toRadians(-90)))                .build();
 
         while (!isStarted() && !isStopRequested())
         {
@@ -252,8 +185,184 @@ public class RedLeft extends LinearOpMode {
 
         drive.followTrajectorySequence(trajSeq);
 
-        Arm1.armSpecDown(0);
+        boolean arm1Out = false;
+        boolean arm1OutFlag = true;
+        boolean senseCone = false;
+        boolean arm1IsOut = false;
+        boolean haveCone = false;
+        double coneTimer = 420;
+        boolean arm1In = false;
+        boolean arm1IsIn = false;
+        boolean arm1InTimerFlag = false;
+        double arm1InTimer = 420;
+        boolean arm2Up = true;
+        boolean arm2UpSlow = false;
+        boolean arm2IsUp = false;
+        double arm2Timer = 420;
+        boolean arm2Down = false;
+        boolean arm2IsDown = false;
+        boolean grab = false;
+        boolean grabFlag = false;
+        boolean cycleFlag = false;
+        boolean lastCone = false;
 
+        double cycle = 0;
+
+        timeyBoi.reset();
+
+        while(cycle < 7){
+            if(arm1OutFlag){
+                arm1OutFlag = false;
+                if(cycle == 0){
+                    Arm1.forearmSpecDown(.85);
+                }
+                else{
+                    Arm1.forearmSpecDown(.85 + (0.025 * (cycle - 1)));
+                }
+                Arm1.openClaw();
+                arm1OutFlag = false;
+                arm1Out = true;
+            }
+
+            if(arm1Out){
+                Arm1.moveArm(.5);
+                if(Arm1.getArmPosition() > 395){
+                    arm1Out = false;
+                    senseCone = true;
+                    Arm1.moveArm(0);
+                }
+            }
+
+            if(senseCone){
+                Arm1.moveArm(.15);
+                if(Arm1.clawSensor.getDistance(DistanceUnit.CM) < 5){
+                    senseCone = false;
+                    arm1IsOut = true;
+                    Arm1.moveArm(0);
+                }
+            }
+
+            if(senseCone && grab){
+                Arm1.moveArm(.15);
+                if(Arm1.clawSensor.getDistance(DistanceUnit.CM) < 3){
+                    senseCone = false;
+                    arm1IsOut = true;
+                    Arm1.moveArm(0);
+                }
+            }
+
+            if(arm1IsOut && grab){
+                Arm1.closeClaw();
+                arm1IsOut = false;
+                haveCone = true;
+                grab = false;
+            }
+
+            if(haveCone){
+                coneTimer = timeyBoi.time();
+                haveCone = false;
+            }
+
+            if(timeyBoi.time() - coneTimer > .3 && !arm1In){
+                arm1In = true;
+                Arm1.forearmUpNoRotate();
+            }
+
+            if(timeyBoi.time() - coneTimer > .35){
+                Arm1.rotaterUp();
+                coneTimer = 420;
+            }
+
+            if(arm1In){
+                Arm1.moveArm(-.7);
+                if(Arm1.getArmPosition() < 5){
+                    arm1In = false;
+                    arm1IsIn = true;
+                    Arm1.moveArm(0);
+                    Arm1.resetArm();
+                }
+            }
+
+            if(arm1IsIn){
+                arm1IsIn = false;
+                arm1InTimerFlag = true;
+            }
+
+            if(arm1InTimerFlag){
+                arm1InTimer = timeyBoi.time();
+                arm1InTimerFlag = false;
+            }
+
+            if(timeyBoi.time() - arm1InTimer > .45){
+                Arm1.openClaw();
+            }
+
+            if(timeyBoi.time() - arm1InTimer > .55){
+                arm1InTimerFlag = false;
+                arm1InTimer = 420;
+                arm2Up = true;
+                cycleFlag = true;
+            }
+
+            if(arm2Up){
+                if(cycle <= 5 && cycle != 0){
+                    arm1OutFlag = true;
+                }
+                if(cycle != 0 && cycleFlag){
+                    drive.followTrajectorySequence(sumo);
+                    cycle++;
+                    cycleFlag = false;
+                }
+                if(cycle == 6){
+                    arm1OutFlag = false;
+                }
+                Arm2.moveArm(.8);
+                if(Arm2.getArmPosition() > 480){
+                    arm2IsUp = true;
+                    arm2Up = false;
+                    Arm2.moveArm(0);
+                }
+            }
+
+            if(arm2IsUp){
+                arm2Timer = timeyBoi.time();
+                arm2IsUp = false;
+            }
+
+            if(timeyBoi.time() - arm2Timer > .05 && !arm2Down) {
+                if(cycle == 6){
+                    Arm1.forearmDown();
+                }
+                arm2Timer = 420;
+                arm2IsUp = false;
+                arm2Down = true;
+                grabFlag = true;
+            }
+
+            if(arm2Down){
+                Arm2.moveArm(-1);
+                if(Arm2.getArmPosition() < 300 && grabFlag){
+                    grab = true;
+                    if(cycle == 0){
+                        cycle++;
+                    }
+                    grabFlag = false;
+
+                }
+                if(Arm2.getArmPosition() < 5){
+                    arm2Down = false;
+                    arm2IsDown = true;
+                    Arm2.moveArm(0);
+                    Arm2.resetArm();
+                    if(cycle == 6 ){
+                        break;
+                    }
+                }
+            }
+        }
+
+        telemetry.addData("Hi ",  " dumbass");
+        telemetry.update();
 
         if(tagOfInterest == null || tagOfInterest.id == LEFT){
             drive.followTrajectorySequence(left);

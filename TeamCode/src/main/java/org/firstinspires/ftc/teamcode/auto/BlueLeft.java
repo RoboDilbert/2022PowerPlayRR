@@ -88,37 +88,28 @@ public class BlueLeft extends LinearOpMode {
         drive.setPoseEstimate(startPose);
 
         TrajectorySequence trajSeq = drive.trajectorySequenceBuilder(startPose)
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -60.75, startPose.getY() + 2.5, Math.toRadians(-73.5)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -60.75, startPose.getY() + 2.5, Math.toRadians(-74)))
                 .addDisplacementMarker(55, () -> {
                     Arm1.forearmDown();
                 })
                 .build();
 
         TrajectorySequence sumo = drive.trajectorySequenceBuilder(trajSeq.end())
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -60.76, startPose.getY() + 2.5, Math.toRadians(-73.5)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -60.76, startPose.getY() + 2.5, Math.toRadians(-74)))
                 .build();
 
         TrajectorySequence left = drive.trajectorySequenceBuilder(sumo.end())
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2.5, Math.toRadians(-90)))
-                .addTemporalMarker(() -> {
-                    Arm1.forearmUp();
-                })
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() - 22, Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -28, startPose.getY() + 2.5, Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -28, startPose.getY() - 22, Math.toRadians(0)))
                 .build();
 
         TrajectorySequence middle = drive.trajectorySequenceBuilder(sumo.end())
-                .addTemporalMarker(() -> {
-                    Arm1.forearmUp();
-                })
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2.5, Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 2.5, Math.toRadians(0)))
                 .build();
 
         TrajectorySequence right = drive.trajectorySequenceBuilder(sumo.end())
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2.5, Math.toRadians(-90)))
-                .addTemporalMarker(() -> {
-                    Arm1.forearmUp();
-                })
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 26, Math.toRadians(-90)))                .build();
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 2.5, Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 26, Math.toRadians(0)))                .build();
 
         while (!isStarted() && !isStopRequested())
         {
@@ -205,6 +196,8 @@ public class BlueLeft extends LinearOpMode {
         boolean grabFlag = false;
         boolean cycleFlag = false;
         boolean lastCone = false;
+        boolean rotate = false;
+        double senseTimer = 420;
 
         double cycle = 0;
 
@@ -212,23 +205,29 @@ public class BlueLeft extends LinearOpMode {
 
         while(cycle < 7){
             if(arm1OutFlag){
-                arm1OutFlag = false;
                 if(cycle == 0){
                     Arm1.forearmSpecDown(.85);
                 }
                 else{
                     Arm1.forearmSpecDown(.85 + (0.025 * (cycle - 1)));
+                    Arm1.rotaterUp();
                 }
                 Arm1.openClaw();
                 arm1OutFlag = false;
                 arm1Out = true;
+                rotate = true;
             }
 
             if(arm1Out){
                 Arm1.moveArm(.5);
+                if(Arm1.getArmPosition() > 25 && rotate){
+                    Arm1.rotaterDown();
+                    rotate = false;
+                }
                 if(Arm1.getArmPosition() > 395){
                     arm1Out = false;
                     senseCone = true;
+                    senseTimer = timeyBoi.time();
                     Arm1.moveArm(0);
                 }
             }
@@ -237,17 +236,23 @@ public class BlueLeft extends LinearOpMode {
                 Arm1.moveArm(.15);
                 if(Arm1.clawSensor.getDistance(DistanceUnit.CM) < 5){
                     senseCone = false;
-                    arm1IsOut = true;
                     Arm1.moveArm(0);
                 }
             }
 
-            if(senseCone && grab){
+            if(grab){
                 Arm1.moveArm(.15);
                 if(Arm1.clawSensor.getDistance(DistanceUnit.CM) < 3){
                     senseCone = false;
                     arm1IsOut = true;
+                    senseTimer = 420;
                     Arm1.moveArm(0);
+                }
+                if(timeyBoi.time() - senseTimer > 3){
+                    Arm1.armDown();
+                    Arm2.armDown();
+                    Arm1.forearmUpNoRotate();
+                    break;
                 }
             }
 
@@ -268,13 +273,17 @@ public class BlueLeft extends LinearOpMode {
                 Arm1.forearmUpNoRotate();
             }
 
-            if(timeyBoi.time() - coneTimer > .35){
+            if(timeyBoi.time() - coneTimer > .5){
                 Arm1.rotaterUp();
                 coneTimer = 420;
             }
 
             if(arm1In){
-                Arm1.moveArm(-.7);
+                if(cycle == 1){
+                    Arm1.moveArm(-.5);
+                }else{
+                    Arm1.moveArm(-.7);
+                }
                 if(Arm1.getArmPosition() < 5){
                     arm1In = false;
                     arm1IsIn = true;
@@ -316,10 +325,17 @@ public class BlueLeft extends LinearOpMode {
                 if(cycle == 6){
                     arm1OutFlag = false;
                 }
-                Arm2.moveArm(.8);
-                if(Arm2.getArmPosition() > 480){
+                if(!arm2UpSlow){
+                    Arm2.moveArm(.5);
+                }
+                if(Arm2.getArmPosition() > 380 && !arm2UpSlow){
+                    arm2UpSlow = true;
+                    Arm2.moveArm(0.25);
+                }
+                if(Arm2.getArmPosition() > 430 && arm2UpSlow){
                     arm2IsUp = true;
                     arm2Up = false;
+                    arm2UpSlow = false;
                     Arm2.moveArm(0);
                 }
             }
@@ -329,7 +345,7 @@ public class BlueLeft extends LinearOpMode {
                 arm2IsUp = false;
             }
 
-            if(timeyBoi.time() - arm2Timer > .05 && !arm2Down) {
+            if(timeyBoi.time() - arm2Timer > .25 && !arm2Down) {
                 if(cycle == 6){
                     Arm1.forearmDown();
                 }
@@ -342,7 +358,9 @@ public class BlueLeft extends LinearOpMode {
             if(arm2Down){
                 Arm2.moveArm(-1);
                 if(Arm2.getArmPosition() < 300 && grabFlag){
-                    grab = true;
+                    if(cycle != 6){
+                        grab = true;
+                    }
                     if(cycle == 0){
                         cycle++;
                     }
@@ -353,7 +371,7 @@ public class BlueLeft extends LinearOpMode {
                     arm2Down = false;
                     arm2IsDown = true;
                     Arm2.moveArm(0);
-                    Arm2.resetArm();
+                    //Arm2.resetArm();
                     if(cycle == 6 ){
                         break;
                     }
@@ -361,8 +379,7 @@ public class BlueLeft extends LinearOpMode {
             }
         }
 
-        telemetry.addData("Hi ",  " dumbass");
-        telemetry.update();
+        Arm1.forearmUpNoRotate();
 
         if(tagOfInterest == null || tagOfInterest.id == LEFT){
             drive.followTrajectorySequence(left);

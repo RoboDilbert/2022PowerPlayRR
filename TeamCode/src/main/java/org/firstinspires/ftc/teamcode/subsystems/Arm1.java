@@ -30,13 +30,13 @@ public class Arm1 {
     public static RevBlinkinLedDriver blinkinLedDriver;
 
     //Constants
-    private static final double CLAW_OPEN = 0.4;
+    private static final double CLAW_OPEN = 0.44;
     private static final double CLAW_HALF = 0.5;
-    private static final double CLAW_CLOSED = 0.66;
-    private static final double ROTATER_UP = 0.845;
-    private static final double ROTATER_DOWN = 0.145;
-    private static final double LIFTER1_UP = 0.73;
-    private static final double LIFTER2_UP = 0.27;
+    private static final double CLAW_CLOSED = 0.71;
+    private static final double ROTATER_UP = 0.83;
+    private static final double ROTATER_DOWN = 0.15;
+    private static final double LIFTER1_UP = 0.77;
+    private static final double LIFTER2_UP = 0.23;
     private static final double LIFTER1_DOWN = 0.05;
     private static final double LIFTER2_DOWN = 0.95;
 
@@ -108,8 +108,8 @@ public class Arm1 {
     }
 
     public static void forearmShort(){
-        lifter1.setPosition(0.28);
-        lifter2.setPosition(0.72);
+        lifter1.setPosition(0.29);
+        lifter2.setPosition(0.71);
         rotater.setPosition(ROTATER_DOWN);
         lifterChangeState("DOWN");
         rotaterChangeState("DOWN");
@@ -122,6 +122,13 @@ public class Arm1 {
         lifterChangeState("DOWN");
         rotaterChangeState("DOWN");
     }
+
+    public static void forearmDownNoRotate(){
+        lifter1.setPosition(LIFTER1_DOWN);
+        lifter2.setPosition(LIFTER2_DOWN);
+        lifterChangeState("DOWN");
+    }
+
 
     public static void forearmSpecDown(double pos){
         lifter1.setPosition(1 - pos);
@@ -144,6 +151,11 @@ public class Arm1 {
     public static void rotaterUp(){
         rotater.setPosition(ROTATER_UP);
         rotaterChangeState("UP");
+    }
+
+    public static void rotaterDown(){
+        rotater.setPosition(ROTATER_DOWN);
+        rotaterChangeState("DOWN");
     }
 
     public static void resetArm(){

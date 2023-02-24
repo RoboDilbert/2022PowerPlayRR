@@ -17,18 +17,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Config
-public class NormalizationDemoPipelineCone extends OpenCvPipeline {
-
+public class NormalizationDemoPipelineConeRed extends OpenCvPipeline {
     public boolean isNormalizing;
     public int normalizeTarget;
 
     // Configuration variables for isolating cone color
-    public static int YLower = 0;
-    public static int CrLower = 90;
-    public static int CbLower = 160;
-    public static int YUpper = 200;
-    public static int CrUpper = 150;
-    public static int CbUpper = 255;
+    public static int YLower = 0; //0
+    public static int CrLower = 150; //90
+    public static int CbLower = 40; //160
+    public static int YUpper = 240; //200
+    public static int CrUpper = 330; //150
+    public static int CbUpper = 180; //255
 
     // Make it so that the mat returned can be changed in dashboard
     public static int returnMat = 0;
@@ -55,7 +54,7 @@ public class NormalizationDemoPipelineCone extends OpenCvPipeline {
     Moments M;
 
     //Constructor
-    public NormalizationDemoPipelineCone(Telemetry telemetry){
+    public NormalizationDemoPipelineConeRed(Telemetry telemetry){
         // Set up lists and telemetry
         xList = new ArrayList<>();
         yList = new ArrayList<>();
@@ -137,11 +136,12 @@ public class NormalizationDemoPipelineCone extends OpenCvPipeline {
         }
 
         // Return the input mat to the camera stream
-        if(returnMat == 0) {
+        /*if(returnMat == 0) {
             return input;
         } else {
             return temp;
-        }
+        }*/
+        return input;
     }
 
     // Getters for coordinates of center of largest contour (cone)

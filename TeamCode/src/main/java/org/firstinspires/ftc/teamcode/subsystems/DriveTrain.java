@@ -220,6 +220,13 @@ public class DriveTrain {
 
     }
 
+    public static void turn(double power){
+        leftFront.setPower(power);
+        leftBack.setPower(power);
+        rightFront.setPower(-power);
+        rightBack.setPower(-power);
+    }
+
     public static void composeTelemetry (Telemetry telemetry) {
 
         telemetry.addAction(new Runnable() {

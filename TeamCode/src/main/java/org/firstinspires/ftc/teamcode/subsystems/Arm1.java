@@ -30,11 +30,11 @@ public class Arm1 {
     public static RevBlinkinLedDriver blinkinLedDriver;
 
     //Constants
-    private static final double CLAW_OPEN = 0.44;
+    private static final double CLAW_OPEN = 0.45;
     private static final double CLAW_HALF = 0.5;
-    private static final double CLAW_CLOSED = 0.71;
-    private static final double ROTATER_UP = 0.83;
-    private static final double ROTATER_DOWN = 0.15;
+    private static final double CLAW_CLOSED = 0.78;
+    private static final double ROTATER_UP = 0.815;
+    private static final double ROTATER_DOWN = 0.135;
     private static final double LIFTER1_UP = 0.77;
     private static final double LIFTER2_UP = 0.23;
     private static final double LIFTER1_DOWN = 0.05;
@@ -97,6 +97,13 @@ public class Arm1 {
         lifter1.setPosition(LIFTER1_UP);
         lifter2.setPosition(LIFTER2_UP);
         rotater.setPosition(ROTATER_UP);
+        lifterChangeState("UP");
+        rotaterChangeState("UP");
+    }
+
+    public static void forearmMid(){
+        lifter1.setPosition(0.5);
+        lifter2.setPosition(0.5);
         lifterChangeState("UP");
         rotaterChangeState("UP");
     }

@@ -22,12 +22,19 @@ public class NormalizationDemoPipelineConeBlue extends OpenCvPipeline {
     public int normalizeTarget;
 
     // Configuration variables for isolating cone color
-    public static int YLower = 40; //0
-    public static int CrLower = 95; //90
-    public static int CbLower = 150; //160
-    public static int YUpper = 170; //200
-    public static int CrUpper = 130; //150
-    public static int CbUpper = 200; //255
+    /*public static int YLower = 0; //0
+    public static int CrLower = 65; //90
+    public static int CbLower = 160; //160
+    public static int YUpper = 145; //200
+    public static int CrUpper = 125; //150
+    public static int CbUpper = 195; //255*/
+
+    public static int YLower = 0; //30
+    public static int CrLower = 0; //80
+    public static int CbLower = 0; //145
+    public static int YUpper = 0; //160
+    public static int CrUpper = 0; //130
+    public static int CbUpper = 0; //195
 
     // Make it so that the mat returned can be changed in dashboard
     public static int returnMat = 0;
@@ -84,22 +91,23 @@ public class NormalizationDemoPipelineConeBlue extends OpenCvPipeline {
             if(Imgproc.contourArea(contours.get(i)) > 250) {
 
                 // Draw all contours to the screen
-                Imgproc.drawContours(input, contours, i, new Scalar(255, 0, 255), 3);
+                Imgproc.drawContours(input, contours, i, new Scalar(255, 0, 255), 10);
 
                 // Find center of contour and add a point on the screen
                 M = Imgproc.moments(contours.get(i));
                 cX = (int)(M.m10 / M.m00);
                 cY = (int)(M.m01 / M.m00);
 
-                Imgproc.circle(input, new Point(cX, cY), 3, new Scalar(0, 0, 255));
+                Imgproc.circle(input, new Point(cX, cY), 10, new Scalar(0, 0, 255));
 
                 // Save the contour's center in a list
                 xList.add(cX);
                 yList.add(cY);
 
                 // Calculate the area of the contour and add it to a list
-                contourAreas.add(Imgproc.contourArea(contours.get(i)));
-
+                if (cY > 500) {
+                    contourAreas.add(Imgproc.contourArea(contours.get(i)));
+                }
             }
         }
 
@@ -168,6 +176,13 @@ public class NormalizationDemoPipelineConeBlue extends OpenCvPipeline {
     public int getCrMax(){return CrUpper;}
     public int getCbMin(){return CbLower;}
     public int getCbMax(){return CbUpper;}
+
+    public void setYMin(int newYMin){YLower = newYMin;}
+    public void setYMax(int newYMax){YUpper = newYMax;}
+    public void setCrMin(int newCrMin){CrLower = newCrMin;}
+    public void setCrMax(int newCrMax){CrUpper = newCrMax;}
+    public void setCbMin(int newCbMin){CbLower = newCbMin;}
+    public void setCbMax(int newCbMax){CbUpper = newCbMax;}
 
     public void incYMin(){YLower++;}
     public void decYMin(){YLower--;}

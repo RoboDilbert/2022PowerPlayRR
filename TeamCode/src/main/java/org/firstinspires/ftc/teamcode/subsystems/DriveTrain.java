@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -21,10 +22,10 @@ import java.util.Locale;
 
 public class DriveTrain {
     //Declare Motors
-    public static DcMotor leftFront;
-    public static DcMotor leftBack;
-    public static DcMotor rightFront;
-    public static DcMotor rightBack;
+    public static DcMotorEx leftFront;
+    public static DcMotorEx leftBack;
+    public static DcMotorEx rightFront;
+    public static DcMotorEx rightBack;
 
     //Dead Wheels
     public static DcMotor leftWheel;
@@ -35,6 +36,9 @@ public class DriveTrain {
     public static Orientation angles;
     public static Acceleration gravity;
 
+    //Servos
+    public static Servo light;
+
 
     //Constructor
     public DriveTrain(){}
@@ -42,14 +46,16 @@ public class DriveTrain {
     //Initialize
     public static void initDriveTrain(HardwareMap hwm){
         //Declare Motors on hardware map
-        leftFront = hwm.get(DcMotor.class, "leftFront");
-        leftBack = hwm.get(DcMotor.class, "leftRear");
-        rightFront = hwm.get(DcMotor.class, "rightFront");
-        rightBack = hwm.get(DcMotor.class, "rightRear");
+        leftFront = hwm.get(DcMotorEx.class, "leftFront");
+        leftBack = hwm.get(DcMotorEx.class, "leftRear");
+        rightFront = hwm.get(DcMotorEx.class, "rightFront");
+        rightBack = hwm.get(DcMotorEx.class, "rightRear");
 
         leftWheel = hwm.get(DcMotor.class, "rightRear");
         rightWheel = hwm.get(DcMotor.class, "leftRear");
         middleWheel = hwm.get(DcMotor.class, "leftFront");
+
+        light = hwm.get(Servo.class, "light");
 
         imu = hwm.get(BNO055IMU.class, "imu");
 
@@ -93,9 +99,16 @@ public class DriveTrain {
 
         angles = DriveTrain.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
 
+        lightOpen();
     }
 
+    public static void lightOpen(){
+        light.setPosition(0);
+    }
 
+    public static void lightClosed(){
+        light.setPosition(1);
+    }
 
     public static void mecanumDrive(double y, double x, double z){
         leftFront.setPower(y + x + z); //+ + +
@@ -222,9 +235,9 @@ public class DriveTrain {
 
     public static void turn(double power){
         leftFront.setPower(power);
-        leftBack.setPower(power);
+        //leftBack.setPower(power);
         rightFront.setPower(-power);
-        rightBack.setPower(-power);
+        //rightBack.setPower(-power);
     }
 
     public static void composeTelemetry (Telemetry telemetry) {

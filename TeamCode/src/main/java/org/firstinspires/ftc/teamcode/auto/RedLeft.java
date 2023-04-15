@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.auto;
 
+import androidx.annotation.NonNull;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -32,6 +35,13 @@ public class RedLeft extends LinearOpMode {
     NormalizationDemoPipelineConeRed pipeline;
 
     ElapsedTime timeyBoi = new ElapsedTime();
+
+    int YLower = 10;
+    int CrLower = 180;
+    int CbLower = 60;
+    int YUpper = 130;
+    int CrUpper = 260;
+    int CbUpper = 130;
 
     // Lens intrinsics
     // UNITS ARE PIXELS
@@ -101,7 +111,7 @@ public class RedLeft extends LinearOpMode {
                     camera2.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
                         @Override
                         public void onOpened() {
-                            camera2.startStreaming(320, 176, OpenCvCameraRotation.UPRIGHT);
+                            camera2.startStreaming(1920,1080, OpenCvCameraRotation.UPRIGHT);
                         }
 
                         @Override
@@ -111,15 +121,22 @@ public class RedLeft extends LinearOpMode {
 
                         }
                     });
+
+                    pipeline.setYMin(YLower);
+                    pipeline.setYMax(YUpper);
+                    pipeline.setCrMin(CrLower);
+                    pipeline.setCrMax(CrUpper);
+                    pipeline.setCbMin(CbLower);
+                    pipeline.setCbMax(CbUpper);
                 })
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -60.75, startPose.getY() + 2.5, Math.toRadians(-74)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -60, startPose.getY() + 2, Math.toRadians(-74)))
                 .addDisplacementMarker(55, () -> {
                     Arm1.forearmDown();
                 })
                 .build();
 
         TrajectorySequence sumo = drive.trajectorySequenceBuilder(trajSeq.end())
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -60.76, startPose.getY() + 2.5, Math.toRadians(-74)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -60.01, startPose.getY() + 2, Math.toRadians(-74)))
                 .build();
 
 
@@ -215,11 +232,18 @@ public class RedLeft extends LinearOpMode {
 
         int lastX = 0;
         int currentX = 0;
-        int target = 150;
-        double power = 0.24;
+        int target = 940;
+        double power = 0.3;
         boolean move = false;
+        boolean moving = false;
         int count = 0;
         boolean search = true;
+        int camCycle = 0;
+        double targetEnc = 0;
+        double currentEnc = 0;
+        double lastEnc = 0;
+        double searchTime = 0;
+        boolean smoll = false;
 
         double cycle = 0;
 
@@ -229,41 +253,72 @@ public class RedLeft extends LinearOpMode {
                 .turn(-(Math.toRadians(((pipeline.getXContour() - 159) / 3))))
                 .build();
 
-        drive.followTrajectorySequence(correct);
-
         currentX = pipeline.getXContour();
 
         while(cycle < 7){
+            camCycle++;
             if(search){
-                lastX = currentX;
                 currentX = pipeline.getXContour();
-                if(lastX > target - 6 && lastX < target + 6){
-                    move = false;
-                    DriveTrain.turn(0);
-                    lastX = pipeline.getXContour();
-                    count = 0;
+                if(!moving && !move){
+                    if((currentX < target - 30 || currentX > target + 30) && timeyBoi.time() - searchTime > .5 && currentX != 0){
+                        move = true;
+                        moving = true;
+                    }
                 }
-                else if(lastX < target && lastX != 0){
-                    DriveTrain.turn(-power);
-                    move = true;
-                }
-                else if(lastX > target && lastX != 0){
-                    DriveTrain.turn(power);
-                    move = true;
-                }
-
-                if (Math.abs(lastX - currentX) == 0 && move && lastX != 0){
-                    count++;
-                }
-                else if(Math.abs(lastX - currentX) > 2 && move && lastX != 0){
-                    power -= 0.01;
-                }
-                if (count == 160) {
-                    power += 0.01;
-                    count = 0;
+                if(moving){
+                    currentEnc = DriveTrain.getMiddlePosition();
+                    if(move){
+                        if(currentX > target){
+                            //Turn Right
+                            targetEnc = currentEnc - (Math.abs(currentX - target) * 2.45);
+                            move = false;
+                        }
+                        else if(currentX < target){
+                            //Turn Left
+                            targetEnc = currentEnc + (Math.abs(currentX - target) * 2.45);
+                            move = false;
+                        }
+                        if(Math.abs(targetEnc - currentEnc) < 500){
+                            power += .04;
+                            smoll = true;
+                        }
+                    }
+                    if(camCycle % 10 == 0){
+                        if (Math.abs(lastEnc - currentEnc) <= 2 && move){
+                            count++;
+                        }
+                        else{
+                            count = 0;
+                        }
+                        if (count == 10) {
+                            power += 0.01;
+                            count = 0;
+                        }
+                    }
+                    if(camCycle % 10 == 0){
+                        if(Math.abs(lastEnc - currentEnc) > 10 && move && lastX != 0){
+                            power -= 0.01;
+                        }
+                        lastEnc = currentEnc;
+                    }
+                    if(currentEnc > targetEnc - 30 && currentEnc < targetEnc + 30){
+                        moving = false;
+                        searchTime = timeyBoi.time();
+                        DriveTrain.turn(0);
+                        count = 0;
+                        if(smoll){
+                            power -= .04;
+                            smoll = false;
+                        }
+                    }
+                    else if(currentEnc < targetEnc){
+                        DriveTrain.turn(-(power + ((Math.abs(targetEnc - currentEnc) / 3500))));
+                    }
+                    else if(currentEnc > targetEnc){
+                        DriveTrain.turn((power + ((Math.abs(targetEnc - currentEnc) / 3500))));
+                    }
                 }
             }
-
             if(arm1OutFlag){
                 if(cycle == 0){
                     Arm1.forearmSpecDown(.85);
@@ -279,7 +334,7 @@ public class RedLeft extends LinearOpMode {
             }
 
             if(arm1Out){
-                Arm1.moveArm(.5);
+                Arm1.moveArm(.43);
                 if(Arm1.getArmPosition() > 25 && rotate){
                     Arm1.rotaterDown();
                     rotate = false;
@@ -292,8 +347,15 @@ public class RedLeft extends LinearOpMode {
                 }
             }
 
-            if(senseCone && !move){
+            if(senseCone && !move && !moving){
                 Arm1.moveArm(.15);
+                if(Arm1.clawSensor.getDistance(DistanceUnit.CM) < 5){
+                    senseCone = false;
+                    Arm1.moveArm(0);
+                }
+            }
+
+            if(senseCone){
                 if(Arm1.clawSensor.getDistance(DistanceUnit.CM) < 5){
                     senseCone = false;
                     Arm1.moveArm(0);
@@ -363,11 +425,11 @@ public class RedLeft extends LinearOpMode {
                 arm1InTimerFlag = false;
             }
 
-            if(timeyBoi.time() - arm1InTimer > .35){
+            if(timeyBoi.time() - arm1InTimer > .3){
                 Arm1.openClaw();
             }
 
-            if(timeyBoi.time() - arm1InTimer > .38){
+            if(timeyBoi.time() - arm1InTimer > .45){
                 arm1InTimerFlag = false;
                 arm1InTimer = 420;
                 arm2Up = true;
@@ -392,11 +454,11 @@ public class RedLeft extends LinearOpMode {
                 if(Arm2.getArmPosition() > 60){
                     Arm2.closeServo();
                 }
-                if(Arm2.getArmPosition() > 415 && !arm2UpSlow){
+                if(Arm2.getArmPosition() > 370 && !arm2UpSlow){
                     arm2UpSlow = true;
-                    Arm2.moveArm(0.25);
+                    Arm2.moveArm(0.2);
                 }
-                if(Arm2.getArmPosition() > 455 && arm2UpSlow){
+                if(Arm2.getArmPosition() > 430 && arm2UpSlow){
                     arm2IsUp = true;
                     arm2Up = false;
                     arm2UpSlow = false;
@@ -407,7 +469,6 @@ public class RedLeft extends LinearOpMode {
             if(arm2IsUp){
                 arm2Timer = timeyBoi.time();
                 arm2IsUp = false;
-                Arm2.openServo();
             }
 
             if(timeyBoi.time() - arm2Timer > .1 && !arm2Down) {
@@ -417,6 +478,7 @@ public class RedLeft extends LinearOpMode {
                 arm2Timer = 420;
                 arm2Down = true;
                 grabFlag = true;
+                Arm2.openServo();
             }
 
             if(arm2Down){
@@ -431,7 +493,7 @@ public class RedLeft extends LinearOpMode {
                     grabFlag = false;
 
                 }
-                if(Arm2.getArmPosition() < 5){
+                if(Arm2.getArmPosition() < 20){
                     arm2Down = false;
                     arm2IsDown = true;
                     Arm2.moveArm(0);
@@ -445,18 +507,46 @@ public class RedLeft extends LinearOpMode {
 
         Arm1.forearmUpNoRotate();
 
+        DriveTrain.lightClosed();
+
+        drive.followTrajectorySequence(sumo);
+
         TrajectorySequence left = drive.trajectorySequenceBuilder(correct.end())
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -28, startPose.getY() + 2.5, Math.toRadians(-90)))
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -28, startPose.getY() - 22, Math.toRadians(0)))
+                .setAccelConstraint(new TrajectoryAccelerationConstraint() {
+                    @Override
+                    public double get(double v, @NonNull Pose2d pose2d, @NonNull Pose2d pose2d1, @NonNull Pose2d pose2d2) {
+                        return 15;
+                    }
+                })
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2, Math.toRadians(-90)))
+                .resetAccelConstraint()
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 2, Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() - 22, Math.toRadians(0)))
                 .build();
 
         TrajectorySequence middle = drive.trajectorySequenceBuilder(correct.end())
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 2.5, Math.toRadians(0)))
+                .setAccelConstraint(new TrajectoryAccelerationConstraint() {
+                    @Override
+                    public double get(double v, @NonNull Pose2d pose2d, @NonNull Pose2d pose2d1, @NonNull Pose2d pose2d2) {
+                        return 15;
+                    }
+                })
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2, Math.toRadians(-90)))
+                .resetAccelConstraint()
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 2, Math.toRadians(0)))
                 .build();
 
         TrajectorySequence right = drive.trajectorySequenceBuilder(correct.end())
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 2.5, Math.toRadians(-90)))
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 26, Math.toRadians(0)))
+                .setAccelConstraint(new TrajectoryAccelerationConstraint() {
+                    @Override
+                    public double get(double v, @NonNull Pose2d pose2d, @NonNull Pose2d pose2d1, @NonNull Pose2d pose2d2) {
+                        return 15;
+                    }
+                })
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2, Math.toRadians(-90)))
+                .resetAccelConstraint()
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 2, Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 22, Math.toRadians(0)))
                 .build();
 
         if(tagOfInterest == null || tagOfInterest.id == LEFT){

@@ -5,16 +5,19 @@ import androidx.lifecycle.LifecycleEventObserver;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+
 @Disabled
 public class Arm1 {
     //Motors
-    public static DcMotor arm1Left;
-    public static DcMotor arm1Right;
+    public static DcMotorEx arm1Left;
+    public static DcMotorEx arm1Right;
 
     //Servos
     public static Servo claw;
@@ -30,15 +33,15 @@ public class Arm1 {
     public static RevBlinkinLedDriver blinkinLedDriver;
 
     //Constants
-    private static final double CLAW_OPEN = 0.45;
+    private static final double CLAW_OPEN = 0.55;
     private static final double CLAW_HALF = 0.5;
-    private static final double CLAW_CLOSED = 0.78;
+    private static final double CLAW_CLOSED = 0.82;
     private static final double ROTATER_UP = 0.815;
     private static final double ROTATER_DOWN = 0.135;
-    private static final double LIFTER1_UP = 0.77;
-    private static final double LIFTER2_UP = 0.23;
-    private static final double LIFTER1_DOWN = 0.05;
-    private static final double LIFTER2_DOWN = 0.95;
+    private static final double LIFTER1_UP = 0.74;
+    private static final double LIFTER2_UP = 0.26;
+    private static final double LIFTER1_DOWN = 0.04;
+    private static final double LIFTER2_DOWN = 0.96;
 
     //States
     private static ARM1_STATE currentArm1State = ARM1_STATE.IN;
@@ -68,8 +71,8 @@ public class Arm1 {
 
     public static void initArm1(HardwareMap hwm){
         //Declare Motors on hardware map
-        arm1Left = hwm.get(DcMotor.class, "arm1Left");
-        arm1Right = hwm.get(DcMotor.class, "arm1Right");
+        arm1Left = hwm.get(DcMotorEx.class, "arm1Left");
+        arm1Right = hwm.get(DcMotorEx.class, "arm1Right");
 
         claw = hwm.get(Servo.class, "claw");
         rotater = hwm.get(Servo.class, "rotater");

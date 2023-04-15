@@ -1,14 +1,15 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class Arm2 {
     //Motors
-    public static DcMotor arm2Left;
-    public static DcMotor arm2Right;
+    public static DcMotorEx arm2Left;
+    public static DcMotorEx arm2Right;
 
     //Servos
     public static Servo sombrero;
@@ -22,8 +23,8 @@ public class Arm2 {
 
     public static void initArm2(HardwareMap hwm){
         //Declare Motors on hardware map
-        arm2Left = hwm.get(DcMotor.class, "arm2Left");
-        arm2Right = hwm.get(DcMotor.class, "arm2Right");
+        arm2Left = hwm.get(DcMotorEx.class, "arm2Left");
+        arm2Right = hwm.get(DcMotorEx.class, "arm2Right");
 
         sombrero = hwm.get(Servo.class, "sombrero");
 

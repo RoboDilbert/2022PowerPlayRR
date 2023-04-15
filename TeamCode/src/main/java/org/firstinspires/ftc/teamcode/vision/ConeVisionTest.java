@@ -19,6 +19,13 @@ public class ConeVisionTest extends LinearOpMode {
     OpenCvWebcam camera;
     NormalizationDemoPipelineConeBlue pipeline;
 
+    int YLower = 0;
+    int CrLower = 70;
+    int CbLower = 155;
+    int YUpper = 100;
+    int CrUpper = 140;
+    int CbUpper = 200;
+
     boolean yUpUp = false;
     boolean yUpDown = false;
     boolean yDownUp = false;
@@ -47,7 +54,7 @@ public class ConeVisionTest extends LinearOpMode {
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
-                camera.startStreaming(320, 176, OpenCvCameraRotation.UPRIGHT);
+                camera.startStreaming(1920, 1080, OpenCvCameraRotation.UPRIGHT);
             }
 
             @Override
@@ -57,6 +64,13 @@ public class ConeVisionTest extends LinearOpMode {
 
             }
         });
+
+        pipeline.setYMin(YLower);
+        pipeline.setYMax(YUpper);
+        pipeline.setCrMin(CrLower);
+        pipeline.setCrMax(CrUpper);
+        pipeline.setCbMin(CbLower);
+        pipeline.setCbMax(CbUpper);
 
         FtcDashboard.getInstance().startCameraStream(camera, 0);
 
@@ -129,6 +143,7 @@ public class ConeVisionTest extends LinearOpMode {
 
         while(!isStopRequested()){
             telemetry.addData("X Pos: ", pipeline.getXContour());
+            telemetry.addData("Middle encoder: ", DriveTrain.getMiddlePosition());
             telemetry.update();
         }
 

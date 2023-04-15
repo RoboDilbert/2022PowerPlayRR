@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.subsystems.Arm1;
 import org.firstinspires.ftc.teamcode.subsystems.Arm2;
@@ -57,6 +58,12 @@ public class TeleOop extends LinearOpMode {
     public static double armTimer = 0;
     public static boolean lookCone = false;
     public static double armDownTimer = 420;
+    public static boolean armManualUp = false;
+    public static boolean armManualDown = false;
+    public static double heightManual = .95;
+    public static double totalCurrent = 0.0;
+    public static boolean totalFlag = false;
+    public static double totalTimer = 0;
 
     public static boolean fieldCentric = true;
 
@@ -65,6 +72,8 @@ public class TeleOop extends LinearOpMode {
         Arm1.initArm1(hardwareMap);
         Arm2.initArm2(hardwareMap);
         DriveTrain.initDriveTrain(hardwareMap);
+
+        DriveTrain.lightClosed();
 
         waitForStart();
 
@@ -106,6 +115,7 @@ public class TeleOop extends LinearOpMode {
             if(gamepad1.b){
                 Arm1.forearmUpNoRotate();
                 Arm1.openClaw();
+                Arm2.openServo();
                 resetArm1 = true;
                 resetArm2 = true;
             }
@@ -129,11 +139,11 @@ public class TeleOop extends LinearOpMode {
 
             if(gamepad1.left_bumper){
                 //Arm1.blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.DARK_BLUE);
-                Arm1.rotater.setPosition(.5);
+                DriveTrain.light.setPosition(0);
             }
             if(gamepad1.right_bumper){
                 //Arm1.blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
-                Arm1.rotater.setPosition(.85);
+                DriveTrain.light.setPosition(1);
             }
 
             if(gamepad1.dpad_up && !autoCone && !dpad){
@@ -206,6 +216,7 @@ public class TeleOop extends LinearOpMode {
             }
             else if(gamepad2.right_stick_y >= .1 && !auto && !searchCone && !autoCone){
                 Arm2.moveArm(-gamepad2.right_stick_y);
+                Arm2.openServo();
             }
             else if(!auto && !searchCone && !autoCone && !resetArm1 && !resetArm2 && !lbumper && !rbumper){
                 Arm2.moveArm(0);
@@ -239,39 +250,55 @@ public class TeleOop extends LinearOpMode {
 
             if(gamepad2.left_bumper){
                 lbumper = true;
-                Arm1.openClaw();
                 Arm2.closeServo();
             }
             if(lbumper && !auto && !searchCone && !autoCone){
                 Arm2.moveArm(.6);
-                if(Arm2.getArmPosition() > 240){
+                if(Arm2.getArmPosition() > 230){
                     lbumper = false;
                     Arm2.moveArm(0);
-                    Arm2.openServo();
                 }
             }
 
 
             if(gamepad2.right_bumper){
                 rbumper = true;
-                Arm1.openClaw();
                 Arm2.closeServo();
             }
             if(rbumper && !auto && !searchCone && !autoCone){
-                Arm2.moveArm(.75);
-                if(Arm2.getArmPosition() > 455){
+                if(Arm2.getArmPosition() < 405){
+                    Arm2.moveArm(.75);
+                }
+                else{
+                    Arm2.moveArm(.25);
+                }
+                if(Arm2.getArmPosition() > 430){
                     rbumper = false;
                     Arm2.moveArm(0);
-                    Arm2.openServo();
                 }
             }
 
 
-            if(gamepad2.right_trigger > .5){
-                searchCone = true;
+            if(gamepad2.right_trigger > .5 && !armManualUp){
+                armManualUp = true;
             }
-            else{
-                searchCone = false;
+            else if(gamepad2.right_trigger < .2 && armManualUp){
+                if(heightManual > .85){
+                    heightManual -= .025;
+                }
+                Arm1.forearmSpecDown(heightManual);
+                armManualUp = false;
+            }
+
+            if(gamepad2.left_trigger > .5 && !armManualDown){
+                armManualDown = true;
+            }
+            else if(gamepad2.left_trigger < .2 && armManualDown){
+                if(heightManual < .95){
+                    heightManual += .025;
+                }
+                Arm1.forearmSpecDown(heightManual);
+                armManualDown = false;
             }
             /**
              * Autonomous Movements
@@ -346,7 +373,7 @@ public class TeleOop extends LinearOpMode {
 
                 if(arm1In){
                     Arm1.moveArm(-.7);
-                    if(Arm1.getArmPosition() < 5){
+                    if(Arm1.getArmPosition() < 20){
                         arm1In = false;
                         arm1IsIn = true;
                         Arm1.moveArm(0);
@@ -400,7 +427,6 @@ public class TeleOop extends LinearOpMode {
                 if(arm2IsUp){
                     arm2Timer = timeyBoi.time();
                     arm2IsUp = false;
-                    Arm2.openServo();
                 }
 
                 if(timeyBoi.time() - arm2Timer > .1 && !arm2Down) {
@@ -411,12 +437,15 @@ public class TeleOop extends LinearOpMode {
 
                 if(arm2Down){
                     Arm2.moveArm(-1);
+                    if(Arm2.getArmPosition() < 440){
+                        Arm2.openServo();
+                    }
                     if(Arm2.getArmPosition() < 300 && grabFlag){
                         grab = true;
                         grabFlag = false;
 
                     }
-                    if(Arm2.getArmPosition() < 5){
+                    if(Arm2.getArmPosition() < 30){
                         arm2Down = false;
                         arm2IsDown = true;
                         Arm2.moveArm(0);
@@ -527,7 +556,7 @@ public class TeleOop extends LinearOpMode {
                             Arm1.forearmSpecDown(.85);
                         }
                         else{
-                            Arm1.forearmSpecDown(.85 + (0.025 * (cycle - 1)));
+                            Arm1.forearmSpecDown(.85 + (0.025 * (cycle)));
                             Arm1.rotaterUp();
                         }
                         Arm1.openClaw();
@@ -537,7 +566,7 @@ public class TeleOop extends LinearOpMode {
                     }
 
                     if(arm1Out){
-                        Arm1.moveArm(.5);
+                        Arm1.moveArm(.35);
                         if(Arm1.getArmPosition() > 25 && rotate){
                             Arm1.rotaterDown();
                             rotate = false;
@@ -589,7 +618,7 @@ public class TeleOop extends LinearOpMode {
                     }
 
                     if(arm1In){
-                        Arm1.moveArm(-.7);
+                        Arm1.moveArm(-.5);
                         if(Arm1.getArmPosition() < 5){
                             arm1In = false;
                             arm1IsIn = true;
@@ -608,11 +637,11 @@ public class TeleOop extends LinearOpMode {
                         arm1InTimerFlag = false;
                     }
 
-                    if(timeyBoi.time() - arm1InTimer > .45){
+                    if(timeyBoi.time() - arm1InTimer > .35){
                         Arm1.openClaw();
                     }
 
-                    if(timeyBoi.time() - arm1InTimer > .55){
+                    if(timeyBoi.time() - arm1InTimer > .45){
                         arm1InTimerFlag = false;
                         arm1InTimer = 420;
                         arm2Up = true;
@@ -651,7 +680,6 @@ public class TeleOop extends LinearOpMode {
                     if(arm2IsUp){
                         arm2Timer = timeyBoi.time();
                         arm2IsUp = false;
-                        Arm2.openServo();
                     }
 
                     if(timeyBoi.time() - arm2Timer > .1 && !arm2Down) {
@@ -661,6 +689,7 @@ public class TeleOop extends LinearOpMode {
                         arm2Timer = 420;
                         arm2Down = true;
                         grabFlag = true;
+                        Arm2.openServo();
                     }
 
                     if(arm2Down){
@@ -688,9 +717,24 @@ public class TeleOop extends LinearOpMode {
                 autonomous = false;
             }
 
+            totalCurrent = (DriveTrain.leftFront.getCurrent(CurrentUnit.MILLIAMPS) + DriveTrain.leftBack.getCurrent(CurrentUnit.MILLIAMPS) + DriveTrain.rightFront.getCurrent(CurrentUnit.MILLIAMPS) + DriveTrain.rightBack.getCurrent(CurrentUnit.MILLIAMPS) + Arm1.arm1Left.getCurrent(CurrentUnit.MILLIAMPS) + Arm1.arm1Right.getCurrent(CurrentUnit.MILLIAMPS) + Arm2.arm2Left.getCurrent(CurrentUnit.MILLIAMPS) + Arm2.arm2Right.getCurrent(CurrentUnit.MILLIAMPS));
+            if(totalCurrent > 20000 && !totalFlag){
+                totalFlag = true;
+                totalTimer = timeyBoi.time();
+            }
+            if(totalFlag){
+                if(totalCurrent < 20000){
+                    totalFlag = false;
+                }
+                else if(timeyBoi.time() - totalTimer > 1){
+
+                }
+            }
+
             //try.addData("Arm 1 pos: ", Arm1.getArmPosition());
-           // telemetry.addData("Cycle: ", cycle);
-           // telemetry.addData("Dist: ", Arm1.clawSensor.getDistance(DistanceUnit.CM));
+            // telemetry.addData("Cycle: ", cycle);
+            //telemetry.addData("Dist: ", Arm1.clawSensor.getDistance(DistanceUnit.CM));
+            //telemetry.addData("Total current: ", totalCurrent);
             //telemetry.update();
         }
     }

@@ -22,12 +22,19 @@ public class NormalizationDemoPipelineConeRed extends OpenCvPipeline {
     public int normalizeTarget;
 
     // Configuration variables for isolating cone color
-    public static int YLower = 0; //0
-    public static int CrLower = 150; //90
-    public static int CbLower = 40; //160
-    public static int YUpper = 240; //200
-    public static int CrUpper = 330; //150
-    public static int CbUpper = 180; //255
+    /*public static int YLower = 40; //0
+    public static int CrLower = 185; //90
+    public static int CbLower = 80; //160
+    public static int YUpper = 140; //200
+    public static int CrUpper = 250; //150
+    public static int CbUpper = 125; //255*/
+
+    public static int YLower = 0; //10
+    public static int CrLower = 0; //165
+    public static int CbLower = 0; //60
+    public static int YUpper = 0; //210
+    public static int CrUpper = 0; //260
+    public static int CbUpper = 0; //130
 
     // Make it so that the mat returned can be changed in dashboard
     public static int returnMat = 0;
@@ -84,22 +91,23 @@ public class NormalizationDemoPipelineConeRed extends OpenCvPipeline {
             if(Imgproc.contourArea(contours.get(i)) > 250) {
 
                 // Draw all contours to the screen
-                Imgproc.drawContours(input, contours, i, new Scalar(255, 0, 255), 3);
+                Imgproc.drawContours(input, contours, i, new Scalar(255, 0, 255), 10);
 
                 // Find center of contour and add a point on the screen
                 M = Imgproc.moments(contours.get(i));
                 cX = (int)(M.m10 / M.m00);
                 cY = (int)(M.m01 / M.m00);
 
-                Imgproc.circle(input, new Point(cX, cY), 3, new Scalar(0, 0, 255));
+                Imgproc.circle(input, new Point(cX, cY), 10, new Scalar(0, 0, 255));
 
                 // Save the contour's center in a list
                 xList.add(cX);
                 yList.add(cY);
 
                 // Calculate the area of the contour and add it to a list
-                contourAreas.add(Imgproc.contourArea(contours.get(i)));
-
+                if (cY > 500) {
+                    contourAreas.add(Imgproc.contourArea(contours.get(i)));
+                }
             }
         }
 
@@ -123,6 +131,12 @@ public class NormalizationDemoPipelineConeRed extends OpenCvPipeline {
         // Telemetry stuff
         telemetry.addData("Contour X Pos", longestContourX);
         telemetry.addData("Contour Y Pos", longestContourY);
+        telemetry.addData("YLower: ", getYMin());
+        telemetry.addData("YUpper: ", getYMax());
+        telemetry.addData("CrLower: ", getCrMin());
+        telemetry.addData("CrUpper: ", getCrMax());
+        telemetry.addData("CbLower: ", getCbMin());
+        telemetry.addData("CbUpper: ", getCbMax());
         telemetry.update();
 
         // Clear lists
@@ -151,5 +165,32 @@ public class NormalizationDemoPipelineConeRed extends OpenCvPipeline {
     public int getYContour(){
         return longestContourY;
     }
+
+    public int getYMin(){return YLower;}
+    public int getYMax(){return YUpper;}
+    public int getCrMin(){return CrLower;}
+    public int getCrMax(){return CrUpper;}
+    public int getCbMin(){return CbLower;}
+    public int getCbMax(){return CbUpper;}
+
+    public void setYMin(int newYMin){YLower = newYMin;}
+    public void setYMax(int newYMax){YUpper = newYMax;}
+    public void setCrMin(int newCrMin){CrLower = newCrMin;}
+    public void setCrMax(int newCrMax){CrUpper = newCrMax;}
+    public void setCbMin(int newCbMin){CbLower = newCbMin;}
+    public void setCbMax(int newCbMax){CbUpper = newCbMax;}
+
+    public void incYMin(){YLower++;}
+    public void decYMin(){YLower--;}
+    public void incYMax(){YUpper++;}
+    public void decYMax(){YUpper--;}
+    public void incCrMin(){CrLower++;}
+    public void decCrMin(){CrLower--;}
+    public void incCrMax(){CrUpper++;}
+    public void decCrMax(){CrUpper--;}
+    public void incCbMin(){CbLower++;}
+    public void decCbMin(){CbLower--;}
+    public void incCbMax(){CbUpper++;}
+    public void decCbMax(){CbUpper--;}
 
 }

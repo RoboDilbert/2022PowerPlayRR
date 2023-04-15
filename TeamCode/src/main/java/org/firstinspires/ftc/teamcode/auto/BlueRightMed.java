@@ -1,10 +1,8 @@
 package org.firstinspires.ftc.teamcode.auto;
 
-import android.hardware.Sensor;
-
 import androidx.annotation.NonNull;
 
-import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.roadrunner.drive.Drive;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
@@ -15,6 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Arm1;
@@ -23,7 +22,6 @@ import org.firstinspires.ftc.teamcode.subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.vision.AprilTagDetectionPipeline;
 import org.firstinspires.ftc.teamcode.vision.NormalizationDemoPipelineConeBlue;
-import org.firstinspires.ftc.teamcode.vision.NormalizationDemoPipelineConeRed;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -31,22 +29,22 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.util.ArrayList;
 
-@Autonomous(name= "RedRight", group= "Autonomous")
-public class RedRight extends LinearOpMode {
+@Autonomous(name= "BlueRightMed", group= "Autonomous")
+public class BlueRightMed extends LinearOpMode {
 
     OpenCvCamera camera;
     OpenCvCamera camera2;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
-    NormalizationDemoPipelineConeRed pipeline;
+    NormalizationDemoPipelineConeBlue pipeline;
 
     ElapsedTime timeyBoi = new ElapsedTime();
 
-    int YLower = 10;
-    int CrLower = 165;
-    int CbLower = 60;
-    int YUpper = 210;
-    int CrUpper = 260;
-    int CbUpper = 130;
+    int YLower = 30;
+    int CrLower = 80;
+    int CbLower = 145;
+    int YUpper = 160;
+    int CrUpper = 130;
+    int CbUpper = 195;
 
     // Lens intrinsics
     // UNITS ARE PIXELS
@@ -75,9 +73,9 @@ public class RedRight extends LinearOpMode {
         Arm2.initArm2(hardwareMap);
         DriveTrain.initDriveTrain(hardwareMap);
 
-        Arm1.blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
+        Arm1.blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.DARK_BLUE);
 
-        pipeline = new NormalizationDemoPipelineConeRed(telemetry);
+        pipeline = new NormalizationDemoPipelineConeBlue(telemetry);
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "camera"), cameraMonitorViewId);
@@ -110,7 +108,7 @@ public class RedRight extends LinearOpMode {
                     camera.closeCameraDevice();
 
                     camera2 = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "camera2"), cameraMonitorViewId);
-                    pipeline = new NormalizationDemoPipelineConeRed(telemetry);
+                    pipeline = new NormalizationDemoPipelineConeBlue(telemetry);
                     camera2.setPipeline(pipeline);
 
                     camera2.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
@@ -146,16 +144,15 @@ public class RedRight extends LinearOpMode {
                         return 40;
                     }
                 })
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -60, startPose.getY() + 2, Math.toRadians(70.25)))
-                .addDisplacementMarker(55, () -> {
-                    Arm1.forearmDown();
-                })
+                .lineTo(new Vector2d(startPose.getX() + -42.75, startPose.getY() - 0))
+                .turn(Math.toRadians(102.5))
+                .lineTo(new Vector2d(startPose.getX() + -42.75, startPose.getY() - 3))
                 .resetVelConstraint()
                 .resetAccelConstraint()
                 .build();
 
         TrajectorySequence sumo = drive.trajectorySequenceBuilder(trajSeq.end())
-                .lineTo(new Vector2d(startPose.getX() + -60.01, startPose.getY() + 2))
+                .lineTo(new Vector2d(startPose.getX() + -42.751, startPose.getY() - 3))
                 .build();
 
         while (!isStarted() && !isStopRequested())
@@ -262,6 +259,13 @@ public class RedRight extends LinearOpMode {
         double lastEnc = 0;
         double searchTime = 0;
         boolean smoll = false;
+        boolean broken = false;
+        double totalCurrent = 0;
+        boolean totalFlag = false;
+        double totalTimer = 0;
+        double arm2Current = 0;
+        boolean arm2CurrentFlag = false;
+        double arm2CurrentTimer = 0;
 
         double cycle = 0;
 
@@ -275,6 +279,34 @@ public class RedRight extends LinearOpMode {
 
         while(cycle < 7){
             camCycle++;
+            totalCurrent = (DriveTrain.leftFront.getCurrent(CurrentUnit.MILLIAMPS) + DriveTrain.leftBack.getCurrent(CurrentUnit.MILLIAMPS) + DriveTrain.rightFront.getCurrent(CurrentUnit.MILLIAMPS) + DriveTrain.rightBack.getCurrent(CurrentUnit.MILLIAMPS) + Arm1.arm1Left.getCurrent(CurrentUnit.MILLIAMPS) + Arm1.arm1Right.getCurrent(CurrentUnit.MILLIAMPS) + Arm2.arm2Left.getCurrent(CurrentUnit.MILLIAMPS) + Arm2.arm2Right.getCurrent(CurrentUnit.MILLIAMPS));
+            arm2Current = (Arm2.arm2Left.getCurrent(CurrentUnit.MILLIAMPS) + Arm2.arm2Right.getCurrent(CurrentUnit.MILLIAMPS));
+            if(totalCurrent > 32000 && !totalFlag){
+                totalFlag = true;
+                totalTimer = timeyBoi.time();
+            }
+            if(totalFlag){
+                if(totalCurrent < 32000){
+                    totalFlag = false;
+                }
+                else if(timeyBoi.time() - totalTimer > 1){
+                    broken = true;
+                    break;
+                }
+            }
+            if(arm2Current > 18000 && !arm2CurrentFlag){
+                arm2CurrentFlag = true;
+                arm2CurrentTimer = timeyBoi.time();
+            }
+            if(arm2CurrentFlag){
+                if(arm2Current < 18000){
+                    arm2CurrentFlag = false;
+                }
+                else if(timeyBoi.time() - arm2CurrentTimer > 1){
+                    broken = true;
+                    break;
+                }
+            }
             if(search){
                 currentX = pipeline.getXContour();
                 if(!moving && !move){
@@ -362,6 +394,7 @@ public class RedRight extends LinearOpMode {
                     senseCone = true;
                     senseTimer = timeyBoi.time();
                     Arm1.moveArm(0);
+                    search = true;
                 }
             }
 
@@ -401,7 +434,8 @@ public class RedRight extends LinearOpMode {
                 arm1IsOut = false;
                 haveCone = true;
                 grab = false;
-                if(cycle == 5){search = false;}
+                search = false;
+                DriveTrain.turn(0);
             }
 
             if(haveCone){
@@ -459,7 +493,6 @@ public class RedRight extends LinearOpMode {
                     arm1OutFlag = true;
                 }
                 if(cycle != 0 && cycleFlag){
-                    drive.followTrajectorySequence(sumo);
                     cycle++;
                     cycleFlag = false;
                 }
@@ -467,16 +500,16 @@ public class RedRight extends LinearOpMode {
                     arm1OutFlag = false;
                 }
                 if(!arm2UpSlow){
-                    Arm2.moveArm(.8);
+                    Arm2.moveArm(.4);
                 }
                 if(Arm2.getArmPosition() > 60){
                     Arm2.closeServo();
                 }
-                if(Arm2.getArmPosition() > 370 && !arm2UpSlow){
+                if(Arm2.getArmPosition() > 180 && !arm2UpSlow){
                     arm2UpSlow = true;
-                    Arm2.moveArm(0.2);
+                    Arm2.moveArm(0.25);
                 }
-                if(Arm2.getArmPosition() > 430 && arm2UpSlow){
+                if(Arm2.getArmPosition() > 240 && arm2UpSlow){
                     arm2IsUp = true;
                     arm2Up = false;
                     arm2UpSlow = false;
@@ -489,7 +522,7 @@ public class RedRight extends LinearOpMode {
                 arm2IsUp = false;
             }
 
-            if(timeyBoi.time() - arm2Timer > .1 && !arm2Down) {
+            if(timeyBoi.time() - arm2Timer > .05 && !arm2Down) {
                 if(cycle == 6){
                     Arm1.forearmDown();
                 }
@@ -501,7 +534,7 @@ public class RedRight extends LinearOpMode {
 
             if(arm2Down){
                 Arm2.moveArm(-1);
-                if(Arm2.getArmPosition() < 300 && grabFlag){
+                if(Arm2.getArmPosition() < 200 && grabFlag){
                     if(cycle != 6){
                         grab = true;
                     }
@@ -529,42 +562,27 @@ public class RedRight extends LinearOpMode {
 
         drive.followTrajectorySequence(sumo);
 
+        if(broken){
+            Arm2.moveArm(0);
+            Arm1.forearmMid();
+            while(Arm1.getArmPosition() > 10){
+                Arm1.moveArm(-.5);
+            }
+            Arm1.moveArm(0);
+        }
+
         TrajectorySequence left = drive.trajectorySequenceBuilder(correct.end())
-                .setAccelConstraint(new TrajectoryAccelerationConstraint() {
-                    @Override
-                    public double get(double v, @NonNull Pose2d pose2d, @NonNull Pose2d pose2d1, @NonNull Pose2d pose2d2) {
-                        return 15;
-                    }
-                })
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2, Math.toRadians(90)))
-                .resetAccelConstraint()
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 2, Math.toRadians(90)))
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() -22, Math.toRadians(0)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -28, startPose.getY() + 2, Math.toRadians(90)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -28, startPose.getY() -22, Math.toRadians(0)))
                 .build();
 
         TrajectorySequence middle = drive.trajectorySequenceBuilder(correct.end())
-                .setAccelConstraint(new TrajectoryAccelerationConstraint() {
-                    @Override
-                    public double get(double v, @NonNull Pose2d pose2d, @NonNull Pose2d pose2d1, @NonNull Pose2d pose2d2) {
-                        return 15;
-                    }
-                })
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2, Math.toRadians(90)))
-                .resetAccelConstraint()
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 2, Math.toRadians(0)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -28, startPose.getY() + 2, Math.toRadians(0)))
                 .build();
 
         TrajectorySequence right = drive.trajectorySequenceBuilder(correct.end())
-                .setAccelConstraint(new TrajectoryAccelerationConstraint() {
-                    @Override
-                    public double get(double v, @NonNull Pose2d pose2d, @NonNull Pose2d pose2d1, @NonNull Pose2d pose2d2) {
-                        return 15;
-                    }
-                })
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2, Math.toRadians(90)))
-                .resetAccelConstraint()
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 2, Math.toRadians(90)))
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 22, Math.toRadians(0)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -28, startPose.getY() + 2, Math.toRadians(90)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -28, startPose.getY() + 22, Math.toRadians(0)))
                 .build();
 
         if(tagOfInterest == null || tagOfInterest.id == LEFT){
@@ -573,6 +591,15 @@ public class RedRight extends LinearOpMode {
             drive.followTrajectorySequence(middle);
         }else{
             drive.followTrajectorySequence(right);
+        }
+
+        if(broken){
+            Arm1.forearmUp();
+            arm2Timer = timeyBoi.time();
+            while(Arm2.getArmPosition() > 10 && timeyBoi.time() - arm2Timer < 1){
+                Arm2.moveArm(-.5);
+            }
+            Arm2.moveArm(0);
         }
     }
 

@@ -1,37 +1,34 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.Servo;
+
 
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode.odometry.OdometryGlobalCoordinatePosition;
+import org.firstinspires.ftc.teamcode.util.Encoder;
+
 
 import java.util.Locale;
 
 public class DriveTrain {
     //Declare Motors
-    public static DcMotor leftFront;
-    public static DcMotor leftBack;
-    public static DcMotor rightFront;
-    public static DcMotor rightBack;
+    public static DcMotorEx leftFront;
+    public static DcMotorEx leftBack;
+    public static DcMotorEx rightFront;
+    public static DcMotorEx rightBack;
+
 
     //Dead Wheels
     public static DcMotor leftWheel;
@@ -42,28 +39,25 @@ public class DriveTrain {
     public static Orientation angles;
     public static Acceleration gravity;
 
+    //Servos
+    public static Servo light;
+
     //Constructor
     public DriveTrain(){}
 
     //Initialize
     public static void initDriveTrain(HardwareMap hwm){
         //Declare Motors on hardware map
-        leftFront = hwm.get(DcMotor.class, "leftFront");
-        leftBack = hwm.get(DcMotor.class, "leftBack");
-        rightFront = hwm.get(DcMotor.class, "rightFront");
-        rightBack = hwm.get(DcMotor.class, "rightBack");
+        leftFront = hwm.get(DcMotorEx.class, "leftFront");
+        leftBack = hwm.get(DcMotorEx.class, "leftRear");
+        rightFront = hwm.get(DcMotorEx.class, "rightFront");
+        rightBack = hwm.get(DcMotorEx.class, "rightRear");
 
-        leftWheel = hwm.get(DcMotor.class, "leftFront");
-        rightWheel = hwm.get(DcMotor.class, "leftBack");
-        middleWheel = hwm.get(DcMotor.class, "rightFront");
+        leftWheel = hwm.get(DcMotor.class, "rightRear");
+        rightWheel = hwm.get(DcMotor.class, "leftRear");
+        middleWheel = hwm.get(DcMotor.class, "leftFront");
 
-        leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        middleWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        leftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        middleWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        light = hwm.get(Servo.class, "light");
 
         imu = hwm.get(BNO055IMU.class, "imu");
 
@@ -73,9 +67,6 @@ public class DriveTrain {
         rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
         rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        //leftWheel.setDirection(DcMotorSimple.Direction.REVERSE);
-        //rightWheel.setDirection(DcMotorSimple.Direction.FORWARD);
-        //middleWheel.setDirection(DcMotorSimple.Direction.FORWARD);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -92,6 +83,13 @@ public class DriveTrain {
         rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        rightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        middleWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        middleWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         BNO055IMU.Parameters parameters1 = new BNO055IMU.Parameters();
         parameters1.angleUnit = BNO055IMU.AngleUnit.RADIANS;
@@ -103,8 +101,17 @@ public class DriveTrain {
         imu.initialize(parameters1);
 
         angles = DriveTrain.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
+
+        lightOpen();
     }
 
+    public static void lightOpen(){
+        light.setPosition(0);
+    }
+
+    public static void lightClosed(){
+        light.setPosition(1);
+    }
 
 
     public static void mecanumDrive(double y, double x, double z){
@@ -143,15 +150,17 @@ public class DriveTrain {
         double adjustedXHeading = Math.cos(command + (angles.firstAngle + adjust) + Math.PI/4);
         double adjustedYHeading = Math.sin(command + (angles.firstAngle + adjust) + Math.PI/4);
 
-        leftFront.setPower((speed * adjustedYHeading + rotation) * Constants.TELEOP_LIMITER);
-        rightFront.setPower((speed * adjustedXHeading - rotation) * Constants.TELEOP_LIMITER);
-        leftBack.setPower((speed * adjustedXHeading + rotation) * Constants.TELEOP_LIMITER);
-        rightBack.setPower((speed * adjustedYHeading - rotation) * Constants.TELEOP_LIMITER);
+        leftFront.setPower((speed * adjustedYHeading + rotation) );
+        rightFront.setPower((speed * adjustedXHeading - rotation) );
+        leftBack.setPower((speed * adjustedXHeading + rotation) );
+        rightBack.setPower((speed * adjustedYHeading - rotation) );
+
 
     }
 
     public static int getLeftPosition(){
-        return -leftWheel.getCurrentPosition();
+        return leftWheel.getCurrentPosition();
+
     }
 
     public static int getRightPosition(){
@@ -212,6 +221,29 @@ public class DriveTrain {
         leftBack.setPower(0);
         rightFront.setPower(0);
         rightBack.setPower(0);
+    }
+
+    public static void cartesianDrive(double x, double y, double z, double adjust){
+        double speed = Math.sqrt(2) * Math.hypot(x, y);
+        double command = Math.atan2(y, -x) + Math.PI/2;
+        double rotation = z;
+
+        angles = DriveTrain.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
+        double adjustedXHeading = Math.cos(command + (angles.firstAngle + adjust) + Math.PI/4);
+        double adjustedYHeading = Math.sin(command + (angles.firstAngle + adjust) + Math.PI/4);
+
+        leftFront.setPower((speed * adjustedYHeading + rotation));
+        rightFront.setPower((speed * adjustedXHeading - rotation));
+        leftBack.setPower((speed * adjustedXHeading + rotation));
+        rightBack.setPower((speed * adjustedYHeading - rotation));
+
+    }
+
+    public static void turn(double power){
+        leftFront.setPower(power);
+        //leftBack.setPower(power);
+        rightFront.setPower(-power);
+        //rightBack.setPower(-power);
     }
 
     public static void composeTelemetry (Telemetry telemetry) {

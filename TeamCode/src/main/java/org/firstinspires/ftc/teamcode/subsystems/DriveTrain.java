@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.util.Encoder;
 
+
 import java.util.Locale;
 
 public class DriveTrain {
@@ -26,6 +28,7 @@ public class DriveTrain {
     public static DcMotorEx leftBack;
     public static DcMotorEx rightFront;
     public static DcMotorEx rightBack;
+
 
     //Dead Wheels
     public static DcMotor leftWheel;
@@ -38,7 +41,6 @@ public class DriveTrain {
 
     //Servos
     public static Servo light;
-
 
     //Constructor
     public DriveTrain(){}
@@ -64,6 +66,7 @@ public class DriveTrain {
         leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
         rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
         rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
+
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -110,6 +113,7 @@ public class DriveTrain {
         light.setPosition(1);
     }
 
+
     public static void mecanumDrive(double y, double x, double z){
         leftFront.setPower(y + x + z); //+ + +
         leftBack.setPower(y - x + z); //+ - +
@@ -151,10 +155,12 @@ public class DriveTrain {
         leftBack.setPower((speed * adjustedXHeading + rotation) );
         rightBack.setPower((speed * adjustedYHeading - rotation) );
 
+
     }
 
     public static int getLeftPosition(){
         return leftWheel.getCurrentPosition();
+
     }
 
     public static int getRightPosition(){

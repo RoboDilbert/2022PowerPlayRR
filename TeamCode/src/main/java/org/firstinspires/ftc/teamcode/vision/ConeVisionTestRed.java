@@ -16,10 +16,10 @@ import org.openftc.easyopencv.OpenCvWebcam;
 @Autonomous
 public class ConeVisionTestRed extends LinearOpMode {
     int YLower = 10;
-    int CrLower = 165;
+    int CrLower = 175;
     int CbLower = 60;
-    int YUpper = 210;
-    int CrUpper = 260;
+    int YUpper = 215;
+    int CrUpper = 255;
     int CbUpper = 130;
 
     boolean yUpUp = false;

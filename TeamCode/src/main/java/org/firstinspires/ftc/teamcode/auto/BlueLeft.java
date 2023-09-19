@@ -36,12 +36,12 @@ public class BlueLeft extends LinearOpMode {
 
     ElapsedTime timeyBoi = new ElapsedTime();
 
-    int YLower = 5;
+    int YLower = 0;
     int CrLower = 70;
-    int CbLower = 145;
-    int YUpper = 80;
+    int CbLower = 150;
+    int YUpper = 150;
     int CrUpper = 140;
-    int CbUpper = 200;
+    int CbUpper = 205;
 
     // Lens intrinsics
     // UNITS ARE PIXELS
@@ -520,8 +520,8 @@ public class BlueLeft extends LinearOpMode {
                 })
                 .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2, Math.toRadians(-90)))
                 .resetAccelConstraint()
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 2, Math.toRadians(-90)))
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() - 22, Math.toRadians(0)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -27.5, startPose.getY() + 2, Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -27.5, startPose.getY() - 22, Math.toRadians(0)))
                 .build();
 
         TrajectorySequence middle = drive.trajectorySequenceBuilder(correct.end())

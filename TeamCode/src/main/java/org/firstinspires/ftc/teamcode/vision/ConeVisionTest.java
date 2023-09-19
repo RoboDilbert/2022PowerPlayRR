@@ -21,10 +21,10 @@ public class ConeVisionTest extends LinearOpMode {
 
     int YLower = 0;
     int CrLower = 70;
-    int CbLower = 155;
-    int YUpper = 100;
+    int CbLower = 160;
+    int YUpper = 160;
     int CrUpper = 140;
-    int CbUpper = 200;
+    int CbUpper = 205;
 
     boolean yUpUp = false;
     boolean yUpDown = false;

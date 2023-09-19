@@ -45,10 +45,10 @@ public class BlueRight extends LinearOpMode {
 
     int YLower = 0;
     int CrLower = 70;
-    int CbLower = 155;
-    int YUpper = 100;
+    int CbLower = 160;
+    int YUpper = 160;
     int CrUpper = 140;
-    int CbUpper = 200;
+    int CbUpper = 205;
 
     // Lens intrinsics
     // UNITS ARE PIXELS
@@ -584,8 +584,8 @@ public class BlueRight extends LinearOpMode {
                 })
                 .lineToLinearHeading(new Pose2d(startPose.getX() + -50, startPose.getY() + 2, Math.toRadians(90)))
                 .resetAccelConstraint()
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() + 2, Math.toRadians(90)))
-                .lineToLinearHeading(new Pose2d(startPose.getX() + -26, startPose.getY() -22, Math.toRadians(0)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -27, startPose.getY() + 2, Math.toRadians(90)))
+                .lineToLinearHeading(new Pose2d(startPose.getX() + -27, startPose.getY() -22, Math.toRadians(0)))
                 .build();
 
         TrajectorySequence middle = drive.trajectorySequenceBuilder(correct.end())
